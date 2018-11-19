@@ -1,0 +1,7 @@
+---
+
+- name: add the syslog service to init and start the service
+  service:
+    name: "{{ syslog_service_name }}"
+    enabled: True
+    state: started

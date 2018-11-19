@@ -1,0 +1,20 @@
+---
+
+- name: delete the configuration
+  file:
+    path: "/etc/syslog-ng/conf.d/{{ syslog_config_name }}.conf"
+    state: absent
+  when: syslog_config_state | default('present') == 'absent'
+  notify:
+    - syslog restart
+
+- name: create the configuration
+  template:
+    src: Debian_syslog.conf.j2
+    dest: "/etc/syslog-ng/conf.d/{{ syslog_config_name }}.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  when: syslog_config_state | default('present') == 'present'
+  notify:
+     - syslog restart

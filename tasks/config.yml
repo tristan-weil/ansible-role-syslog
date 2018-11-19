@@ -1,0 +1,9 @@
+---
+
+- name: create the log dir
+  file:
+    path: "{{ syslog_destination_log_path | dirname }}"
+    owner: root
+    group: root
+    mode: "0755"
+    state: directory

@@ -1,0 +1,42 @@
+{% if syslog_src_devlog is defined %}
+# Source
+source s_{{ syslog_config_name }} {
+    unix-dgram("{{ syslog_src_devlog }}");
+};
+{% endif %}
+
+# Destination
+destination d_{{ syslog_config_name }} {
+    file("{{ syslog_destination_log_path }}"
+         owner("{{ syslog_destination_user }}")
+         group("{{ syslog_destination_group }}")
+         perm({{ syslog_destination_mode }})
+         persist-name("d_{{ syslog_config_name }}")
+    );
+};
+
+# Filters
+filter f_{{ syslog_config_name }} {
+{% if syslog_facility != '*' %}
+    facility({{ syslog_facility }});
+{% endif %}
+{% if syslog_level != '*' %}
+    level({{ syslog_level }});
+{% endif %}
+{% if syslog_program_name == 'php-fpm' %}
+    program("{{ syslog_program_name }}") or program("ool");
+{% else %}
+    program("{{ syslog_program_name }}");
+{% endif %}
+};
+
+# Logs
+log {
+    source(s_src);
+{% if syslog_src_devlog is defined %}
+    source(s_{{ syslog_config_name }});
+{% endif %}
+    filter(f_{{ syslog_config_name }});
+    destination(d_{{ syslog_config_name }});
+    flags(final);
+};

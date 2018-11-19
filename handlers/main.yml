@@ -1,0 +1,7 @@
+---
+
+- name: syslog restart
+  listen: network restart
+  service:
+    name: "{{ syslog_service_name }}"
+    state: restarted
