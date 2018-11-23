@@ -17,7 +17,7 @@
     mode: "{{ syslog_destination_mode }}"
   when: syslog_config_state | default('present') == 'present'
 
-- name: add a /dev/log in a chroot: create parent dir
+- name: add a /dev/log in a chroot -> create parent dir
   file:
     path: "{{ syslog_src_devlog | dirname }}"
     owner: root
@@ -26,7 +26,7 @@
     state: directory
   when: syslog_src_devlog is defined
 
-- name: add a /dev/log in a chroot: create dev
+- name: add a /dev/log in a chroot -> create dev
   lineinfile:
     path: /etc/rc.conf.local
     backrefs: True
