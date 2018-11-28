@@ -5,3 +5,14 @@
   service:
     name: "{{ syslog_service_name }}"
     state: restarted
+
+- name: syslog reload
+  service:
+    name: "{{ syslog_service_name }}"
+    state: reloaded
+
+- name: syslog reload
+  listen: chrooted /dev/log
+  service:
+    name: "{{ syslog_service_name }}"
+    state: reloaded

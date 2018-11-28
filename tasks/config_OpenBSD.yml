@@ -7,7 +7,7 @@
     state: absent
   when: syslog_config_state | default('present') == 'absent'
   notify:
-    - syslog restart
+    - syslog reload
 
 - name: create the log file
   file:
@@ -45,4 +45,4 @@
       !*
   when: syslog_config_state | default('present') == 'present'
   notify:
-    - syslog restart
+    - syslog reload

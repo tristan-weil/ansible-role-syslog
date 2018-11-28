@@ -17,4 +17,4 @@
     mode: "0644"
   when: syslog_config_state | default('present') == 'present'
   notify:
-    - syslog restart
+    - syslog reload
