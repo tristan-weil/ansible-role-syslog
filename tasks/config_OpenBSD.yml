@@ -15,6 +15,7 @@
     owner: "{{ syslog_destination_user }}"
     group: "{{ syslog_destination_group }}"
     mode: "{{ syslog_destination_mode }}"
+    state: touch
   when: syslog_config_state | default('present') == 'present'
 
 - name: add a /dev/log in a chroot -> create parent dir
