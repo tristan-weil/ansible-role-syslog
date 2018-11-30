@@ -33,6 +33,7 @@ filter f_{{ syslog_config_name }} {
 # Logs
 log {
     source(s_src);
+    source(s_net);
 {% if syslog_src_devlog is defined %}
     source(s_{{ syslog_config_name }});
 {% endif %}

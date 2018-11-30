@@ -1,7 +1,7 @@
 ---
 
 - name: add network config
-  copy:
+  template:
     src: Debian_syslog_000_src_net.conf.j2
     dest: /etc/syslog-ng/conf.d/000_src_net.conf
     owner: root
