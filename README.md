@@ -40,7 +40,7 @@ Make it available for OpenBSD.
 ## License
 
 ```
-Copyright (c) 2018 Tristan Weil <titou@lab.t18s.fr>
+Copyright (c) 2018, 2019 Tristan Weil <titou@lab.t18s.fr>
 
 Permission to use, copy, modify, and distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
