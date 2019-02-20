@@ -24,9 +24,9 @@ filter f_{{ syslog_config_name }} {
     level({{ syslog_level }});
 {% endif %}
 {% if syslog_program_name == 'php-fpm' %}
-    program("{{ syslog_program_name }}") or program("ool");
+    program("^{{ syslog_program_name }}") or program("ool");
 {% else %}
-    program("{{ syslog_program_name }}");
+    program("^{{ syslog_program_name }}");
 {% endif %}
 };
 

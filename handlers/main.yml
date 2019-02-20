@@ -3,16 +3,11 @@
 - name: syslog restart
   listen: network restart
   service:
-    name: "{{ syslog_service_name }}"
+    name: "{% if ansible_facts['distribution'] == 'OpenBSD' %}syslogd{% else %}syslog-ng{% endif %}"
     state: restarted
-
-- name: syslog reload
-  service:
-    name: "{{ syslog_service_name }}"
-    state: reloaded
 
 - name: syslog reload
   listen: chrooted /dev/log
   service:
-    name: "{{ syslog_service_name }}"
+    name: "{% if ansible_facts['distribution'] == 'OpenBSD' %}syslogd{% else %}syslog-ng{% endif %}"
     state: reloaded
