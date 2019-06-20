@@ -1,0 +1,13 @@
+---
+
+##############################################################################
+# Variables
+##############################################################################
+syslog_service_name: "{{ __syslog_service_name_by_distribution[ ansible_facts['distribution'] ] }}"
+
+##############################################################################
+# Distributions' dictionaries
+##############################################################################
+__syslog_service_name_by_distribution:
+  Debian: syslog-ng
+  OpenBSD: syslogd
