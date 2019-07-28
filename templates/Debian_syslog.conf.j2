@@ -26,16 +26,17 @@ filter f_{{ syslog_config_name }} {
 {% if syslog_program_name == 'php-fpm' %}
     program("^{{ syslog_program_name }}") or program("ool");
 {% else %}
-    program("^{{ syslog_program_name }}");
+    program("^{{ syslog_program_name }}$");
 {% endif %}
 };
 
 # Logs
 log {
-    source(s_src);
-    source(s_net);
 {% if syslog_src_devlog is defined %}
     source(s_{{ syslog_config_name }});
+{% else %}
+    source(s_src);
+    source(s_net);
 {% endif %}
     filter(f_{{ syslog_config_name }});
     destination(d_{{ syslog_config_name }});
