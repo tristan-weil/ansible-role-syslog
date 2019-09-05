@@ -32,7 +32,7 @@ filter f_{{ syslog_config_name }} {
 
 # Logs
 log {
-{% if syslog_src_devlog is defined %}
+{% if syslog_src_devlog is defined and syslog_src_devlog != '/dev/log' %}
     source(s_{{ syslog_config_name }});
 {% else %}
     source(s_src);
