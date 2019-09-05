@@ -1,4 +1,4 @@
-{% if syslog_src_devlog is defined %}
+{% if syslog_src_devlog is defined and syslog_src_devlog != '/dev/log' %}
 # Source
 source s_{{ syslog_config_name }} {
     unix-dgram("{{ syslog_src_devlog }}");
