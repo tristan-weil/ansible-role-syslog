@@ -3,6 +3,11 @@
 - hosts: all
   name: 'Converge'
   become: True
+  vars:
+    __converge_extra_pkg_by_os_family:
+      Debian:
+        - 'net-tools'
+      OpenBSD: []
 
   tasks:
     - name: 'create test group'
@@ -13,6 +18,10 @@
       user:
         name: 'testinfra'
         group: 'testinfra'
+
+    - name: 'install extra packages'
+      package:
+        name: "{{ __converge_extra_pkg_by_os_family[ ansible_facts['os_family'] ] }}"
 
     - import_role:
         name: 'ansible-role-syslog'
