@@ -1,0 +1,52 @@
+---
+
+- name: 'create the conf.d dir'
+  file:
+    path: '/etc/syslog-ng/conf.d'
+    owner: 'root'
+    group: 'root'
+    mode: '0755'
+    state: 'directory'
+
+- name: 'delete the configuration'
+  file:
+    path: "/etc/syslog-ng/conf.d/{{ item.name }}.conf"
+    state: 'absent'
+  when: item.state | default('present') == 'absent'
+  loop: "{{ syslog_configs_list }}"
+  notify:
+    - 'syslog_restart_handler'
+
+- name: 'add global src configuration'
+  template:
+    src: 'Debian_syslog_000_src_customs.conf.j2'
+    dest: '/etc/syslog-ng/conf.d/000_src_customs.conf'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  when: syslog_sources | default([]) | length > 0
+  notify:
+    - 'syslog_restart_handler'
+
+- name: 'add global dest configuration'
+  template:
+    src: 'Debian_syslog_000_dest_customs.conf.j2'
+    dest: '/etc/syslog-ng/conf.d/000_dest_customs.conf'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  when: syslog_sources | default([]) | length > 0
+  notify:
+    - 'syslog_restart_handler'
+
+- name: 'create the configuration'
+  template:
+    src: 'Debian_syslog.conf.j2'
+    dest: "/etc/syslog-ng/conf.d/{{ item.name }}.conf"
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  when: item.state | default('present') == 'present'
+  loop: "{{ syslog_configs_list }}"
+  notify:
+    - 'syslog_restart_handler'

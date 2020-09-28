@@ -1,0 +1,45 @@
+---
+
+- name: 'delete the configuration'
+  blockinfile:
+    path: '/etc/syslog.conf'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK {{ item.name }}"
+    state: 'absent'
+  when: item.state | default('present') == 'absent'
+  loop: "{{ syslog_configs_list }}"
+  notify:
+    - 'syslog_restart_handler'
+
+- name: 'create the configuration'
+  blockinfile:
+    path: '/etc/syslog.conf'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK {{ item.name }}"
+    insertafter: '^#\s+\$OpenBSD: syslog.conf'
+    block: |
+      {% for log in item.logs %}
+      {%    for filter in log.filters %}
+      {% set query = "[?name=='" + filter + "'][].program[]" %}
+      {%      for program in item.filters | json_query("[?name=='" + filter + "'][].program[]") %}
+      !!{{ program }}
+      {%        for facility in item.filters | json_query("[?name=='" + filter + "'][].facilities[]") %}
+      {%          for level in item.filters | json_query("[?name=='" + filter + "'][].levels[]") %}
+      {%            for destination in log.destinations %}
+      {%              for driver in item.destinations | json_query("[?name=='" + destination + "'][].drivers[]") %}
+      {%                if driver.type == 'network' %}
+      {{ facility }}.{{ level }} @{{ driver.protocol }}{{ driver.ip_version | default('4') }}://{{ driver.hostname }}:{{ driver.port }}
+      {%                endif %}
+      {%                if driver.type == 'file' %}
+      {{ facility }}.{{ level }} {{ driver.log_path }}
+      {%                endif %}
+      {%              endfor %}
+      {%            endfor %}
+      {%          endfor %}
+      {%        endfor %}
+      !*
+      {%      endfor %}
+      {%    endfor %}
+      {% endfor %}
+  when: item.state | default('present') == 'present'
+  loop: "{{ syslog_configs_list }}"
+  notify:
+    - 'syslog_restart_handler'

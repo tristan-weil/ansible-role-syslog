@@ -1,0 +1,29 @@
+---
+
+- name: 'create command line'
+  set_fact:
+    __syslog_openbsd_cmd_line_options: >-
+      {% set result = [] -%}
+      {% for s in syslog_service_options | default([]) -%}
+      {% set dummy = result.append(s) -%}
+      {% endfor -%}
+      {% for s in __syslog_openbsd_source_unixdgram_present + __syslog_openbsd_global_source_unixdgram_present -%}
+      {% set dummy = result.append("-a " + s.devlog) -%}
+      {% endfor -%}
+      {% for s in __syslog_openbsd_source_network_present + __syslog_openbsd_global_source_network_present -%}
+      {%    if s.protocol == 'udp' -%}
+      {% set dummy = result.append("-U") -%}
+      {%    endif -%}
+      {%    if s.protocol == 'tcp' -%}
+      {% set dummy = result.append("-T") -%}
+      {%    endif -%}
+      {% set dummy = result.append(s.hostname + ":" + s.port | string) -%}
+      {% endfor -%}
+      {{ result }}
+
+- name: 'add the syslog service to init and start the service'
+  service:
+    name: "{{ _syslog_service_name }}"
+    enabled: True
+    state: 'started'
+    arguments: "{{ __syslog_openbsd_cmd_line_options | join(' ') }}"

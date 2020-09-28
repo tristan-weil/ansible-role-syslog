@@ -1,0 +1,24 @@
+---
+
+- name: 'list destinations of type unix-dgram'
+  set_fact:
+    __syslog_openbsd_global_source_unixdgram_present: "{{ syslog_sources | default([]) | json_query(\"[?(!state || state=='present')][].drivers[?type=='unix-dgram'][]\") }}"
+    __syslog_openbsd_global_source_unixdgram_absent: "{{ syslog_sources | default([]) | json_query(\"[?(state=='absent')][].drivers[?type=='unix-dgram'][]\") }}"
+    __syslog_openbsd_source_unixdgram_present: "{{ syslog_configs_list | json_query(\"[].sources[?(!state || state=='present')][].drivers[?type=='unix-dgram'][]\") }}"
+    __syslog_openbsd_source_unixdgram_absent: "{{ syslog_configs_list | json_query(\"[].sources[?(state=='absent')][].drivers[?type=='unix-dgram'][]\") }}"
+
+- name: 'add a /dev/log in a chroot -> check parent dir'
+  stat:
+    path: "{{ item[1].devlog | dirname }}"
+  register: __syslog_openbsd_devlog_dir_result
+  loop: "{{ __syslog_openbsd_source_unixdgram_present + __syslog_openbsd_global_source_unixdgram_present }}"
+
+- name: 'add a /dev/log in a chroot -> create parent dir'
+  file:
+    path: "{{ item.item.devlog | dirname }}"
+    owner: 'root'
+    group: 'wheel'
+    mode: '0755'
+    state: 'directory'
+  when: not item.stat.exists
+  loop: "{{ __syslog_openbsd_devlog_dir_result.results }}"

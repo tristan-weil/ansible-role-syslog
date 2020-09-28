@@ -1,0 +1,40 @@
+---
+
+- name: 'list destinations of type file'
+  set_fact:
+    __syslog_openbsd_global_dest_files_present: "{{ syslog_destinations | default([]) | json_query(\"[?(!state || state=='present')][].drivers[?type=='file'][]\") }}"
+    __syslog_openbsd_global_dest_files_absent: "{{ syslog_destinations | default([]) | json_query(\"[?(state=='absent')][].drivers[?type=='file'][]\") }}"
+    __syslog_openbsd_dest_files_present: "{{ syslog_configs_list | json_query(\"[].destinations[?(!state || state=='present')][].drivers[?type=='file'][]\") }}"
+    __syslog_openbsd_dest_files_absent: "{{ syslog_configs_list | json_query(\"[].destinations[?(state=='absent')][].drivers[?type=='file'][]\") }}"
+
+- name: 'check destination log dirs'
+  stat:
+    path: "{{ item.log_path | dirname }}"
+  register: __syslog_openbsd_dest_dir_result
+  loop: "{{ __syslog_openbsd_dest_files_present + __syslog_openbsd_global_dest_files_present }}"
+
+- name: 'create the destination log dirs'
+  file:
+    path: "{{ item.item.log_path | dirname }}"
+    owner: "{{ item.item.dir_user | default('root') }}"
+    group: "{{ item.item.dir_group | default('wheel') }}"
+    mode: "{{ item.item.dir_mode | default('0600') }}"
+    state: 'directory'
+  when: not item.stat.exists
+  loop: "{{ __syslog_openbsd_dest_dir_result.results }}"
+
+- name: 'check destination log files'
+  stat:
+    path: "{{ item.log_path }}"
+  register: __syslog_openbsd_dest_result
+  loop: "{{ __syslog_openbsd_dest_files_present + __syslog_openbsd_global_dest_files_present }}"
+
+- name: 'create the log files'
+  file:
+    path: "{{ item.item.log_path }}"
+    owner: "{{ item.item.log_user | default('root') }}"
+    group: "{{ item.item.log_group | default('wheel') }}"
+    mode: "{{ item.item.log_mode | default('0600') }}"
+    state: 'touch'
+  when: not item.stat.exists
+  loop: "{{ __syslog_openbsd_dest_result.results }}"

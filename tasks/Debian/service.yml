@@ -1,0 +1,30 @@
+---
+
+- name: 'configure /etc/default'
+  lineinfile:
+    path: '/etc/default/syslog-ng'
+    state: 'absent'
+    regexp: '^SYSLOGNG_OPTS='
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  when: syslog_service_options == 0
+
+- name: 'configure /etc/default'
+  lineinfile:
+    path: '/etc/default/syslog-ng'
+    backrefs: True
+    state: 'present'
+    create: True
+    regexp: '^SYSLOGNG_OPTS='
+    line: "SYSLOGNG_OPTS=\"{{ syslog_service_options | join(' ') }}\""
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  when: syslog_service_options | length > 0
+
+- name: 'add the syslog service to init and start the service'
+  service:
+    name: "{{ _syslog_service_name }}"
+    enabled: True
+    state: 'started'

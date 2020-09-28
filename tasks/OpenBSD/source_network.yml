@@ -1,0 +1,8 @@
+---
+
+- name: 'list destinations of type network'
+  set_fact:
+    __syslog_openbsd_global_source_network_present: "{{ syslog_sources | default([]) | json_query(\"[?(!state || state=='present')][].drivers[?type=='network'][]\") }}"
+    __syslog_openbsd_global_source_network_absent: "{{ syslog_sources | default([]) | json_query(\"[?(state=='absent')][].drivers[?type=='network'][]\") }}"
+    __syslog_openbsd_source_network_present: "{{ syslog_configs_list | json_query(\"[].sources[?(!state || state=='present')][].drivers[?type=='network'][]\") }}"
+    __syslog_openbsd_source_network_absent: "{{ syslog_configs_list | json_query(\"[].sources[?(state=='absent')][].drivers[?type=='network'][]\") }}"

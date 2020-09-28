@@ -1,44 +1,84 @@
-{% if syslog_src_devlog is defined and syslog_src_devlog != '/dev/log' %}
-# Source
-source s_{{ syslog_config_name }} {
-    unix-dgram("{{ syslog_src_devlog }}");
-};
-{% endif %}
-
-# Destination
-destination d_{{ syslog_config_name }} {
-    file("{{ syslog_destination_log_path }}"
-         owner("{{ syslog_destination_user }}")
-         group("{{ syslog_destination_group }}")
-         perm({{ syslog_destination_mode }})
-         persist-name("d_{{ syslog_config_name }}")
+# Sources
+{% for source in item.sources | default([]) %}
+source s_{{ source.name }} {
+{%      for driver in source.drivers %}
+{%          if driver.type == 'network' %}
+    network(
+        transport("{{ driver.protocol}}")
+        ip("{{ driver.hostname }}")
+        ip-protocol({{ driver.ip_version | default('4') }})
+        port({{ driver.port }})
     );
+{%          endif %}
+{%          if driver.type == 'unix-dgram' and driver.devlog != '/dev/log' %}
+    unix-dgram("{{ driver.devlog }}");
+{%          endif %}
+{%      endfor %}
 };
+{% endfor %}
+
+# Destinations
+{% for destination in item.destinations %}
+destination d_{{ destination.name }} {
+{%      for driver in destination.drivers %}
+{%          if driver.type == 'network' %}
+    network(
+        transport("{{ driver.protocol}}")
+        ip("{{ driver.hostname }}")
+        ip-protocol({{ driver.ip_version | default('4') }})
+        port({{ driver.port }})
+    );
+{%          endif %}
+{%          if driver.type == 'file' %}
+    file("{{ driver.log_path }}"
+         owner("{{ driver.log_user | default('root') }}")
+         group("{{ driver.log_group | default('adm') }}")
+         perm({{ driver.log_mode | default('0600') }})
+         create_dirs(yes)
+         dir_owner("{{ driver.dir_user | default('root') }}")
+         dir_group("{{ driver.dir_group | default('adm') }}")
+         dir_perm({{ driver.dir_mode | default('0700') }})
+    );
+{%          endif %}
+{%      endfor %}
+};
+{% endfor %}
 
 # Filters
-filter f_{{ syslog_config_name }} {
-{% if syslog_facility != '*' %}
-    facility({{ syslog_facility }});
+{% for filter in item.filters %}
+filter f_{{ filter.name }} {
+    program("^{{ filter.program | join('$") or program("^') }}$")
+{% if filter.facilities | default([]) | length > 0 and not '*' in filter.facilities %}
+    and facility({{ filter.facilities | join(', ') }})
 {% endif %}
-{% if syslog_level != '*' %}
-    level({{ syslog_level }});
+{% if filter.levels | default([]) | length > 0 and not '*' in filter.levels %}
+    and level({{ filter.levels | join(', ') }})
 {% endif %}
-{% if syslog_program_name == 'php-fpm' %}
-    program("^{{ syslog_program_name }}") or program("ool");
-{% else %}
-    program("^{{ syslog_program_name }}$");
+{% if filter.not_facilities | default([]) | length > 0 %}
+    and not facility({{ filter.not_facilities | join(', ') }})
 {% endif %}
+{% if filter.not_levels | default([]) | length > 0 %}
+    and not level({{ filter.not_levels | join(', ') }})
+{% endif %}
+{% for f in filter.not_filters | default([]) %}
+    and not filter({{ f }})
+{% endfor %}
+    ;
 };
+{% endfor %}
 
 # Logs
+{% for log in item.logs %}
 log {
-{% if syslog_src_devlog is defined and syslog_src_devlog != '/dev/log' %}
-    source(s_{{ syslog_config_name }});
-{% else %}
-    source(s_src);
-    source(s_net);
-{% endif %}
-    filter(f_{{ syslog_config_name }});
-    destination(d_{{ syslog_config_name }});
+{%      for source in log.sources %}
+    source(s_{{ source }});
+{%      endfor %}
+{%      for filter in log.filters %}
+    filter(f_{{ filter }});
+{%      endfor %}
+{%      for destination in log.destinations %}
+    destination(d_{{ destination }});
+{%      endfor %}
     flags(final);
 };
+{% endfor %}

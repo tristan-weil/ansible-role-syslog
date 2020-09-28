@@ -1,16 +1,8 @@
 ---
 
-# syslog_config_name:
-syslog_config_state: present
+syslog_service_options: []
 
-# syslog_program_name:
+syslog_sources: []
+syslog_destinations: []
 
-# syslog_src_devlog:
-
-# syslog_destination_log_path:
-# syslog_destination_user:
-# syslog_destination_group:
-# syslog_destination_mode:
-
-# syslog_facility:
-# syslog_level:
+syslog_configs_list: []

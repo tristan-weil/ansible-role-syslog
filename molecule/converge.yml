@@ -1,0 +1,59 @@
+---
+
+- hosts: all
+  name: 'Converge'
+  become: True
+
+  tasks:
+    - name: 'create test group'
+      group:
+        name: 'testinfra'
+
+    - name: 'create test user'
+      user:
+        name: 'testinfra'
+        group: 'testinfra'
+
+    - import_role:
+        name: 'ansible-role-syslog'
+      vars:
+        syslog_sources:
+          - name: 'mynet'
+            drivers:
+              - type: 'network'
+                protocol: 'udp'
+                hostname: '127.0.0.1'
+                port: 514
+
+        syslog_configs_list:
+          - name: 'testinfra1'
+
+            filters:
+              - name: 'testinfra_default'
+                program:
+                  - 'testinfra'
+                facilities:
+                  - "*"
+                levels:
+                  - 'notice'
+
+            destinations:
+              - name: 'testinfra_default'
+                drivers:
+                  - type: 'file'
+                    log_path: '/var/log/testinfra/testinfra.log'
+                    log_user: 'testinfra'
+                    log_group: 'testinfra'
+                    log_mode: '0640'
+                    dir_user: 'testinfra'
+                    dir_group: 'testinfra'
+                    dir_mode: '0750'
+
+            logs:
+              - sources:
+                  - 'src'
+                  - 'mynet'
+                filters:
+                  - 'testinfra_default'
+                destinations:
+                  - 'testinfra_default'

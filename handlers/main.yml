@@ -1,13 +1,11 @@
 ---
 
-- name: syslog restart
-  listen: network restart
+- name: 'syslog_restart_handler'
   service:
-    name: "{{ syslog_service_name }}"
-    state: restarted
+    name: "{{ _syslog_service_name }}"
+    state: 'restarted'
 
-- name: syslog reload
-  listen: chrooted /dev/log
+- name: 'syslog_reload_handler'
   service:
-    name: "{{ syslog_service_name }}"
-    state: reloaded
+    name: "{{ _syslog_service_name }}"
+    state: 'reloaded'

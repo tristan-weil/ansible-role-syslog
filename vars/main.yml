@@ -3,11 +3,20 @@
 ##############################################################################
 # Variables
 ##############################################################################
-syslog_service_name: "{{ __syslog_service_name_by_distribution[ ansible_facts['distribution'] ] }}"
+_syslog_service_name: "{{ _syslog_service_name_by_os_family[ ansible_facts['os_family'] ] }}"
+_syslog_to_remove: "{{ _syslog_to_remove_by_os_family[ ansible_facts['os_family'] ] }}"
 
 ##############################################################################
 # Distributions' dictionaries
 ##############################################################################
-__syslog_service_name_by_distribution:
-  Debian: syslog-ng
-  OpenBSD: syslogd
+_syslog_service_name_by_os_family:
+  Debian: 'syslog-ng'
+  OpenBSD: 'syslogd'
+
+_syslog_to_remove_by_os_family:
+  Debian:
+    - name: 'rsyslog'
+      packages:
+        - name: 'rsyslog'
+
+  OpenBSD: []

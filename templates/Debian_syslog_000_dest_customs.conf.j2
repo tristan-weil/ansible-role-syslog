@@ -1,0 +1,26 @@
+{% for destination in syslog_destinations | default([]) %}
+destination s_{{ destination.name }} {
+{%      for driver in destination.drivers %}
+{%          if driver.type == 'network' %}
+    network(
+        transport("{{ driver.protocol}}")
+        ip("{{ driver.hostname }}")
+        ip-protocol({{ driver.ip_version | default('4') }})
+        port({{ driver.port }})
+    );
+{%          endif %}
+{%          if driver.type == 'file' %}
+    file(
+        "{{ driver.log_path }}"
+        owner("{{ driver.log_user | default('root') }}")
+        group("{{ driver.log_group | default('adm') }}")
+        perm({{ driver.log_mode | default('0600') }})
+        create_dirs(yes)
+        dir_owner("{{ driver.dir_user | default('root') }}")
+        dir_group("{{ driver.dir_group | default('adm') }}")
+        dir_perm({{ driver.dir_mode | default('0700') }})
+    );
+{%          endif %}
+{%      endfor %}
+};
+{% endfor %}

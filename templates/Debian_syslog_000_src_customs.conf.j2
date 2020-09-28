@@ -1,0 +1,17 @@
+{% for source in syslog_sources | default([]) %}
+source s_{{ source.name }} {
+{%      for driver in source.drivers %}
+{%          if driver.type == 'network' %}
+    network(
+        transport("{{ driver.protocol}}")
+        ip("{{ driver.hostname }}")
+        ip-protocol({{ driver.ip_version | default('4') }})
+        port({{ driver.port }})
+    );
+{%          endif %}
+{%          if driver.type == 'unix-dgram' and driver.devlog != '/dev/log' %}
+    unix-dgram("{{ driver.devlog }}");
+{%          endif %}
+{%      endfor %}
+};
+{% endfor %}

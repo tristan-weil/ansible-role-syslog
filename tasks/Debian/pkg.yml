@@ -1,0 +1,7 @@
+---
+
+- include_role:
+    name: 'ansible-role-pkg'
+  vars:
+    pkg_list:
+      - 'syslog-ng'

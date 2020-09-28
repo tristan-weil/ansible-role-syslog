@@ -1,0 +1,49 @@
+---
+
+- hosts: all
+  name: 'Verify'
+  become: True
+  gather_facts: True
+  vars:
+    __verify_service_by_os_family:
+      Debian: 'syslog-ng'
+      OpenBSD: 'syslogd'
+
+    __verify_conf_by_os_family:
+      Debian: '/etc/syslog-ng/conf.d/testinfra1.conf'
+      OpenBSD: '/etc/syslog.conf'
+
+    __verify_cmd_by_os_family:
+      Debian: 'netstat -na | grep udp | grep "127.0.0.1:514"'
+      OpenBSD: 'netstat -na | grep udp | grep "127.0.0.1.514"'
+
+  tasks:
+    - name: 'Check service is enabled/started'
+      service:
+        name: "{{ __verify_service_by_os_family[ ansible_facts['os_family'] ] }}"
+        enabled: True
+        state: 'started'
+      register: __verify_svc
+      failed_when: __verify_svc.changed
+      when: ansible_facts['os_family'] != 'OpenBSD'  # we can't determine 'arguments' during verify so it'll be always false
+
+    - name: 'Check the content of the configuration file'
+      slurp:
+        path: "{{ __verify_conf_by_os_family[ ansible_facts['os_family'] ] }}"
+      register: __verify_slurp
+      failed_when: not __verify_slurp.content | b64decode | regex_search('testinfra')
+
+    - name: 'Check the port is open'
+      shell: "{{ __verify_cmd_by_os_family[ ansible_facts['os_family'] ] }}"
+      register: __verify_cmd
+      failed_when: __verify_cmd.rc != 0
+
+    - name: 'Write to syslog'
+      shell: |
+        logger -p local0.notice -t testinfra 'ohai'
+
+    - name: 'Check Write to syslog'
+      slurp:
+        path: '/var/log/testinfra/testinfra.log'
+      register: __verify_slurp
+      failed_when: not __verify_slurp.content | b64decode | regex_search('ohai')

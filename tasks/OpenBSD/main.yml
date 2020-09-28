@@ -1,0 +1,13 @@
+---
+
+- include_tasks: 'destination_file.yml'
+
+- include_tasks: 'destination_network.yml'
+
+- include_tasks: 'source_unixdgram.yml'
+
+- include_tasks: 'source_network.yml'
+
+- include_tasks: 'service.yml'
+
+- include_tasks: 'config.yml'

@@ -1,0 +1,27 @@
+---
+
+- name: 'gather data about services'
+  service_facts:
+
+- name: 'disable syslog services'
+  service:
+    name: "{{ item.name }}"
+    state: 'stopped'
+    enabled: False
+  when: >
+    ansible_facts['services'][item.name + '.service'] is defined
+  loop: "{{ _syslog_to_remove }}"
+
+- name: 'mask syslog services'
+  systemd:
+    name: "{{ item.name }}"
+    masked: True
+  when: >
+    ansible_facts['service_mgr'] == 'systemd'
+    and ansible_facts['services'][item.name + '.service'] is defined
+  loop: "{{ _syslog_to_remove }}"
+
+- include_role:
+    name: 'ansible-role-pkg'
+  vars:
+    pkg_list: "{{ _syslog_to_remove | json_query(\"[*].packages | [].{ name: name, state: 'absent' }\") }}"

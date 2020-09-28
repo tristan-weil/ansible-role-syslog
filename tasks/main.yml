@@ -1,7 +1,3 @@
 ---
 
-- import_tasks: config.yml
-
-- include_tasks: "config_{{ ansible_facts['distribution'] }}.yml"
-
-- import_tasks: service.yml
+- include_tasks: "{{ ansible_facts['os_family'] }}/main.yml"
